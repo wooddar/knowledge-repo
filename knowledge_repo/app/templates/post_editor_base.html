@@ -51,7 +51,7 @@
     {% include 'post_editor_review_modal.html' %}
       <div class="row row-space-2"></div>
       <div class="row col-md-12" id="metadata_fields">
-        <form>
+        <form id="webpost-editor-form">
           <div class="form-group webeditor-form">
             {% block metadata_fields %}
 
@@ -82,13 +82,22 @@
             <br>
 
             <br>
-
-            <label for="post_image_feed"> Feed Image (Optional)</label>
-            <input id="post_image_feed"
-                   class="form-control"
-                   type="text"
-                   value="{{ feed_image if feed_image else ''}}"></input>
+                <label for="thumbnail-form-group"><i>Optional</i></label>
+            <div class="input-group" id="thumbnail-form-group">
+                <label class="input-group-btn">
+                    <span class="btn btn-primary">
+                    Upload an image (max 500kb)
+                    <input type="file" style="display: none;" name="feed_image_upload" id="feed_image_upload">
+                </span>
+                </label>
+                <input id="post_image_feed"
+                       class="form-control"
+                       type="text"
+                       placeholder="Or add a URL image"
+                       value="{{ feed_image if feed_image else ''}}">
+            </div>
             <br>
+
 
             <label for="post_tags"> Tags </label>
             <select id="post_tags"
@@ -424,6 +433,13 @@ $("#author_can_publish").on("click", function(){
 })
 
 $("#btn_save").on("click", function(){
+
+    var form = document.querySelector('#webpost-editor-form');
+  var formData = new FormData(form);
+
+    for (var [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
   path = {% if path %} '{{ path }}' {% else %} $('#post_path').typeahead('val') {% endif %}
 

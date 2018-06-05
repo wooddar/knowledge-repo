@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import request, render_template, Blueprint, current_app, url_for, send_from_directory, g
 from sqlalchemy import or_
 from werkzeug import secure_filename
+from werkzeug.datastructures import FileStorage
 
 from knowledge_repo.post import KnowledgePost
 from .. import permissions
@@ -120,7 +121,8 @@ def editor(path=None):
 @permissions.post_edit.require()
 def save_post():
     """ Save the post """
-
+    import pdb
+    pdb.set_trace()
     data = request.get_json()
     path = data['path']
 
@@ -152,12 +154,20 @@ def save_post():
     headers['path'] = data['path']
     # TODO: thumbnail header not working currently, as feed image set with kp
     # method not based on header
-    headers['thumbnail'] = data.get('feed_image', '')
     headers['authors'] = [auth.strip() for auth in data['author']]
     headers['tldr'] = data['tldr']
     headers['tags'] = [tag.strip() for tag in data.get('tags', [])]
     if 'proxy' in data:
         headers['proxy'] = data['proxy']
+
+    # TODO: https://robots.thoughtbot.com/ridiculously-simple-ajax-uploads-with-formdata
+    # TODO: https://stackoverflow.com/questions/21044798/how-to-use-formdata-for-ajax-file-upload
+    # TODO: https://stackoverflow.com/questions/21060247/send-formdata-and-string-data-together-through-jquery-ajax
+    # TODO: Append all other form fields to the FormData object
+    # try to get thumb from upload element first, else take the url image
+    headers['thumbnail'] = request.files.get('feed_image_upload') or data.get('feed_image', '')
+
+
 
     kp.write(urlunquote(data['markdown']), headers=headers)
     # add to repo

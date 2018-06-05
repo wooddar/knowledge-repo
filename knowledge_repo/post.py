@@ -7,16 +7,20 @@ import logging
 import datetime
 import yaml
 import mimetypes
+from werkzeug.datastructures import FileStorage
 import base64
 import uuid
-
+from flask import flash
 import six
 from builtins import next, object
 
+from .app.utils.image import is_allowed_image_format
 from .utils.encoding import encode, decode
 
 logger = logging.getLogger(__name__)
 
+# def is_allowed_image_format(image):
+#     return True
 
 SAMPLE_HEADER = """
 ---
@@ -315,21 +319,49 @@ class KnowledgePost(object):
                 h[header] = value
         self.headers = h
 
+
+    @property
+    def _local_thumbnail_uri(self,thumbnail):
+        if not self._has_ref(thumbnail):
+            return None
+        data = base64.b64encode(self._read_ref(thumbnail))
+        image_mimetype = mimetypes.guess_type(thumbnail)[0]
+        if image_mimetype is not None:
+            return 'data:{};base64,'.format(image_mimetype) + data.decode('utf-8')
+
+    def _check_filesize(self,file):
+        return not (len(file) > 500 * 1024)
+
     @property
     def thumbnail_uri(self):
         thumbnail = self.headers.get('thumbnail')
 
-        if not thumbnail or not isinstance(thumbnail, str):
+        if not thumbnail:
             return None
 
-        if ':' not in thumbnail:  # if thumbnail points to a local reference
-            if not self._has_ref(thumbnail):
+        elif isinstance(thumbnail, str):
+            if is_allowed_image_format(thumbnail):
+                if ':' not in thumbnail:  # if thumbnail points to a local reference
+                    return self._local_thumbnail_uri(thumbnail)
+            else:
+                flash("Thumbnail image url type not recognised, please only use urls for [jpeg,jpg,png,gif] images",
+                      category='error')
                 return None
-            data = base64.b64encode(self._read_ref(thumbnail))
-            image_mimetype = mimetypes.guess_type(thumbnail)[0]
-            if image_mimetype is not None:
-                return 'data:{};base64,'.format(image_mimetype) + data.decode('utf-8')
-            return None
+
+        elif isinstance(thumbnail,  FileStorage):
+            if is_allowed_image_format(thumbnail.filename):
+                data_raw = thumbnail.read()
+                if self._check_filesize(data_raw):
+                    data = base64.b64encode(data_raw)
+                    image_mimetype = thumbnail.mimetype
+                    return 'data:{};base64,'.format(image_mimetype) + data.decode('utf-8')
+                else:
+                    flash('Thumbnail image exceeds max size of 500kb', category='error')
+                    return None
+            else:
+                flash("Thumbnail image type not recognised, please only use [jpeg,jpg,png,gif] images",
+                      category='error')
+                return None
 
         return thumbnail
 

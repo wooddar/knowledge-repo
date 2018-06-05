@@ -5,8 +5,9 @@ import os
 from knowledge_repo.utils.dependencies import check_dependencies
 from knowledge_repo._version import __optional_dependencies__
 
-ALLOWED_IMAGE_TYPES = ('png', 'jpeg', 'gif')
+ALLOWED_IMAGE_TYPES = ('png', 'jpeg', 'gif', 'jpg')
 
+__all__ = ['is_allowed_image_format']
 
 def get_file_extension(filepath):
     return os.path.splitext(filepath)[1]
@@ -14,7 +15,11 @@ def get_file_extension(filepath):
 
 def is_allowed_image_format(img_file):
     """ Checks if a given file is an image"""
-    return imghdr.what(img_file) in ALLOWED_IMAGE_TYPES
+    if isinstance(img_file,str):
+        valid = img_file.split('.')[-1] in ALLOWED_IMAGE_TYPES
+    else:
+        valid = imghdr.what(img_file) in ALLOWED_IMAGE_TYPES
+    return valid
 
 
 def is_pdf(filename):
