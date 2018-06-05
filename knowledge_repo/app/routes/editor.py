@@ -121,8 +121,6 @@ def editor(path=None):
 @permissions.post_edit.require()
 def save_post():
     """ Save the post """
-    import pdb
-    pdb.set_trace()
     data = request.get_json()
     path = data['path']
 
