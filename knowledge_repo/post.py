@@ -348,6 +348,7 @@ class KnowledgePost(object):
                       category='error')
                 return None
 
+        # TODO: Extract this to a separate function
         elif isinstance(thumbnail,  FileStorage):
             if is_allowed_image_format(thumbnail.filename):
                 data_raw = thumbnail.read()
