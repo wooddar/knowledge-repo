@@ -157,7 +157,8 @@ def save_post():
     headers['tags'] = [tag.strip() for tag in data.get('tags', [])]
     if 'proxy' in data:
         headers['proxy'] = data['proxy']
-
+        
+    # TODO: https://stackoverflow.com/questions/5697605/limit-the-size-of-an-file-upload-html-input/17173301#17173301
     # TODO: https://robots.thoughtbot.com/ridiculously-simple-ajax-uploads-with-formdata
     # TODO: https://stackoverflow.com/questions/21044798/how-to-use-formdata-for-ajax-file-upload
     # TODO: https://stackoverflow.com/questions/21060247/send-formdata-and-string-data-together-through-jquery-ajax
